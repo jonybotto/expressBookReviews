@@ -20,35 +20,35 @@ public_users.post("/register", (req,res) => {
 });
 
 // Get the book list available in the shop
-public_users.get('/',function (req, res) {
+public_users.get('/',async function (req, res) {
   //Write your code here
-    booksPromise = new Promise((resolve, reject) => {
+    try {
+        let data = JSON.stringify(books, null, 4)
+        return res.status(200).send(data)
+    } catch(err) {
+        return res.status(404).send("Could not get data")
+    }
+})
+
+// Get book details based on ISBN
+public_users.get('/isbn/:isbn',function (req, res) {
+  //Write your code here
+    booksISBNPromise = new Promise((resolve, reject) => {
         try {
-            const data = JSON.stringify(books, null, 4)
-            resolve(data)
+            if (req.params.isbn > 0 && req.params.isbn < 11) {
+                const data = books[req.params.isbn]
+                resolve(data)
+            } else {
+                return res.status(404).send("Invalid ISBN number")
+            }
         } catch(err) {
             reject(err)
         }
     })
-    booksPromise.then(
+    booksISBNPromise.then(
         (data) => res.status(200).send(data),
-        (err) => res.status(404).send("Could not get data")
+        (err) => res.status(404).send("Oops... Something went wrong")
     )
-});
-
-// Get book details based on ISBN
-public_users.get('/isbn/:isbn',async function (req, res) {
-  //Write your code here
-    try {
-        if (req.params.isbn > 0 && req.params.isbn < 11) {
-            const data = await books[req.params.isbn]
-            res.status(200).send(data)
-        } else {
-            res.status(404).send("Invalid ISBN number")
-        }
-    } catch(err) {
-        res.status(404).send("Oops... Something went wrong")
-    }
 })
 
 // Get book details based on author
@@ -60,7 +60,7 @@ public_users.get('/author/:author',async function (req, res) {
             .map((key) => books[key])
             .filter((book) => book.author.replace(/ /g, "") === req.params.author);
         if (booksByAuthor.length > 0) {
-            res.status(200).send(booksByAuthor)
+            return res.status(200).send(booksByAuthor)
         } else {
             return res.status(404).json({message: "No books found for the provided author"})
         }
@@ -78,7 +78,7 @@ public_users.get('/title/:title',async function (req, res) {
             .map((key) => books[key])
             .filter((book) => book.title.replace(/ /g, "") === req.params.title);
         if (booksByTitle.length > 0) {
-            res.status(200).send(booksByTitle)
+            return res.status(200).send(booksByTitle)
         } else {
             return res.status(404).json({message: "No books found for the provided title"})
         }
@@ -91,9 +91,9 @@ public_users.get('/title/:title',async function (req, res) {
 public_users.get('/review/:isbn',function (req, res) {
   //Write your code here
   if (req.params.isbn > 0 && req.params.isbn < 11) {
-    res.status(200).send(books[req.params.isbn].reviews)
+    return res.status(200).send(books[req.params.isbn].reviews)
   } else {
-    res.status(404).send("Invalid ISBN number")
+    return res.status(404).send("Invalid ISBN number")
   }
 });
 
